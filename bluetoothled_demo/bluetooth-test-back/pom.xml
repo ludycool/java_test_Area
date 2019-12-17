@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>bluetooth-test</artifactId>
+        <groupId>com.topband.bluetest</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>bluetooth-test-back</artifactId>
+    <version>${back.version}</version>
+
+<dependencies>
+    <!-- 项目子模块 -->
+    <dependency>
+        <groupId>com.topband.bluetest</groupId>
+        <artifactId>entity</artifactId>
+        <version>${entity.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.topband.bluetest</groupId>
+        <artifactId>dao</artifactId>
+        <version>${dao.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.topband.bluetest</groupId>
+        <artifactId>service</artifactId>
+        <version>${service.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.topband.bluetest</groupId>
+        <artifactId>service</artifactId>
+        <version>${service.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.topband.bluetest</groupId>
+        <artifactId>serviceImpl</artifactId>
+        <version>${serviceImpl.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.topband.bluetest</groupId>
+        <artifactId>common</artifactId>
+        <version>${common.version}</version>
+    </dependency>
+    <!-- spring-boot-starter -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter</artifactId>
+    </dependency>
+    <!-- web -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <!--spring切面aop依赖-->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-aop</artifactId>
+    </dependency>
+    <!-- swagger2 引用-->
+    <dependency>
+        <groupId>io.springfox</groupId>
+        <artifactId>springfox-swagger2</artifactId>
+        <version>${swagger.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>io.springfox</groupId>
+        <artifactId>springfox-swagger-ui</artifactId>
+        <version>${swagger.version}</version>
+    </dependency>
+    <!-- nacos 配置中心-->
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+    </dependency>
+</dependencies>
+
+    <build>
+        <plugins>
+            <!-- Srping Boot 打包工具 打包成可执行的jar  -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.12.4</version>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+            <!--打包后 复制jar包到指定文件目录-->
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <!-- here the phase you need -->
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <!-- 复制资源后的输出目录 -->
+                            <outputDirectory>${basedir}/target/dockerfile</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/docker</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <!-- docker插件 -->
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>1.2.0</version>
+                <configuration>
+                    <!-- 私有仓库配置，需要settings.xml文件配合serverId对应的服务地址 -->
+                    <serverId>${docker.serverId}</serverId>
+                    <!-- docker私服地址 -->
+                    <registryUrl>${docker.registry}</registryUrl>
+                    <!-- 指定docker server的地址，该配置不需要本机安装docker -->
+                    <dockerHost>${docker.host}</dockerHost>
+                    <imageName>${project.name}/${project.artifactId}:${project.version}</imageName>
+                    <imageTags>
+                        <imageTag>${project.version}</imageTag>
+                    </imageTags>
+                    <!-- docker的构建目录（构建上下文），包含Dockerfile  -->
+                    <dockerDirectory>${project.basedir}/target/dockerfile</dockerDirectory>
+                    <resources>
+                        <resource>
+                            <targetPath>/</targetPath>
+                            <directory>${project.build.directory}</directory>
+                            <include>${project.build.finalName}.jar</include>
+                        </resource>
+                    </resources>
+                </configuration>
+                <executions>
+                    <!-- package之前清除上一次构建的image -->
+                    <execution>
+                        <id>remove-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>removeImage</goal>
+                        </goals>
+                        <configuration>
+                            <imageName>
+                               ${project.name}/${project.artifactId}
+                            </imageName>
+                            <imageTags>
+                                <imageTag>${project.version}</imageTag>
+                            </imageTags>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>remove-tag-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>removeImage</goal>
+                        </goals>
+                        <configuration>
+                            <imageName>
+                                ${docker.registry}/${project.name}/${project.artifactId}
+                            </imageName>
+                            <imageTags>
+                                <imageTag>${project.version}</imageTag>
+                                <imageTag>latest</imageTag>
+                            </imageTags>
+                        </configuration>
+                    </execution>
+                    <!-- 将docker:build绑定到package这个phase  -->
+                    <execution>
+                        <id>build-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                        <configuration>
+                            <!-- imageName中若不指定tag，则会打上latest -->
+                            <imageName>${project.name}/${project.artifactId}:${project.version}</imageName>
+                            <!-- 可以使用<imageTags>标签打其他额外的tag -->
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>tag-image</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>tag</goal>
+                        </goals>
+                        <configuration>
+                            <!-- docker tag IMAGE[:TAG] [REGISTRY_HOST[:REGISTRY_PORT]/]REPOSITORY[:TAG]  -->
+                            <!-- images与IMAGE[:TAG]对应，必须在build阶段已经构建了 -->
+                            <image>${project.name}/${project.artifactId}:${project.version}</image>
+                            <!-- newName与tag命令的第二个参数对应 -->
+                            <newName>
+                                ${docker.registry}/${project.name}/${project.artifactId}:${project.version}
+                            </newName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>tag-image-latest</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>tag</goal>
+                        </goals>
+                        <configuration>
+                            <!-- docker tag IMAGE[:TAG] [REGISTRY_HOST[:REGISTRY_PORT]/]REPOSITORY[:TAG]  -->
+                            <!-- images与IMAGE[:TAG]对应，必须在build阶段已经构建了 -->
+                            <image>${project.name}/${project.artifactId}:${project.version}</image>
+                            <!-- newName与tag命令的第二个参数对应 -->
+                            <newName>
+                                ${docker.registry}/${project.name}/${project.artifactId}:latest
+                            </newName>
+                        </configuration>
+                    </execution>
+                    <!-- 将docker:push绑定到deploy这个phase  -->
+                    <execution>
+                        <id>push-image</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>push</goal>
+                        </goals>
+                        <configuration>
+                            <imageName>
+                                ${docker.registry}/${project.name}/${project.artifactId}:${project.version}
+                            </imageName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>push-image-latest</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>push</goal>
+                        </goals>
+                        <configuration>
+                            <imageName>
+                                ${docker.registry}/${project.name}/${project.artifactId}:latest
+                            </imageName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+</project>

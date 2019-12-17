@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>bluetooth-test</artifactId>
+        <groupId>com.topband.bluetest</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>serviceImpl</artifactId>
+    <version>${serviceImpl.version}</version>
+    <dependencies>
+        <!-- 项目子模块 -->
+        <dependency>
+            <groupId>com.topband.bluetest</groupId>
+            <artifactId>entity</artifactId>
+            <version>${entity.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.topband.bluetest</groupId>
+            <artifactId>dao</artifactId>
+            <version>${dao.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.topband.bluetest</groupId>
+            <artifactId>service</artifactId>
+            <version>${service.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.topband.bluetest</groupId>
+            <artifactId>common</artifactId>
+            <version>${common.version}</version>
+        </dependency>
+
+    </dependencies>
+</project>
